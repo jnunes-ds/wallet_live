@@ -6,13 +6,13 @@ use serde::Deserialize;
 use crate::app::AppState;
 use crate::auth::admin::Admin;
 use crate::error::AppError;
-use crate::models::{Asset, Id};
+use crate::models::asset::{Asset, Id};
 use crate::routes::api;
 
 pub fn router() -> Router<AppState> {
     Router::new()
         .route(
-            "/assets", 
+            "/assets",
             get(api::list_assets)
                 .post(api::create_asset)
                 .patch(update_asset)

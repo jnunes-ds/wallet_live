@@ -11,9 +11,8 @@ use tracing_subscriber::fmt::format::FmtSpan;
 use tracing_subscriber::Layer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-
+use crate::models::asset::{Asset, Id};
 use crate::routes::api;
-use crate::models::{Asset, Id};
 
 #[derive(Clone)]
 pub struct AppState {
