@@ -1,0 +1,11 @@
+### GET
+GET http://127.0.0.1:3000/
+
+### POST
+POST http://127.0.0.1:3000/
+Content-Type: application/json
+
+{
+  "name": "bitcoin",
+  "unit_value": 10.45
+}
