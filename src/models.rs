@@ -1,8 +1,10 @@
 use serde::Serialize;
 
+pub type Id = i64;
+
 #[derive(Serialize, Clone)]
 pub struct Asset {
-    pub id: i64,
+    pub id: Id,
     pub name: String,
     pub unit_value: f64,
 }

@@ -1,10 +1,7 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 
-use axum::{Json, Router};
-use axum::extract::State;
-use axum::routing::get;
-
-use serde::Deserialize;
+use axum::{Router};
 
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
@@ -16,11 +13,11 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
 use crate::routes::api;
-use crate::models::Asset;
+use crate::models::{Asset, Id};
 
 #[derive(Clone)]
 pub struct AppState {
-    pub(crate) assets: Arc<Mutex<Vec<Asset>>>
+    pub(crate) assets: Arc<Mutex<HashMap<Id, Asset>>>
 }
 
 impl AppState {

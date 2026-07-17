@@ -4,8 +4,20 @@ GET http://127.0.0.1:3000/api/assets
 ### POST
 POST http://127.0.0.1:3000/api/assets
 Content-Type: application/json
+Authorization: im-the-admin
 
 {
   "name": "bitcoin",
   "unit_value": 10.45
+}
+
+### PATCH
+PATCH http://127.0.0.1:3000/api/assets
+Content-Type: application/json
+Authorization: im-the-admin
+
+{
+  "id": 1,
+  "name": "Bitcoin",
+  "unit_value": 11.0
 }
