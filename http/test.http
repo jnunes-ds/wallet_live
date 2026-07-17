@@ -1,8 +1,8 @@
 ### GET
-GET http://127.0.0.1:3000/
+GET http://127.0.0.1:3000/api/assets
 
 ### POST
-POST http://127.0.0.1:3000/
+POST http://127.0.0.1:3000/api/assets
 Content-Type: application/json
 
 {
