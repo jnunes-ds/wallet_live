@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use axum::{Router};
-
+use sqlx::PgPool;
 use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 
@@ -16,14 +16,18 @@ use crate::routes::api;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub(crate) assets: Arc<Mutex<HashMap<Id, Asset>>>
+    pub assets: Arc<Mutex<HashMap<Id, Asset>>>,
+    pub db: PgPool,
 }
 
 impl AppState {
-    fn new() -> Self {
-        Self {
-            assets: Default::default()
-        }
+    async fn new() -> color_eyre::Result<Self> {
+        let database_url = std::env::var("DATABASE_URL")?;
+        let db = PgPool::connect(database_url.as_str()).await?;
+        Ok(Self {
+            assets: Default::default(),
+            db
+        })
     }
 }
 
@@ -39,10 +43,11 @@ impl App {
 
         info!("Starting server...");
 
+        let state = AppState::new().await?;
         let listener = TcpListener::bind("127.0.0.1:3000").await?;
         let router = Router::new()
             .nest("/api", api::router())
-            .with_state(AppState::new());
+            .with_state(state);
 
 
         axum::serve(listener, router).await?;
