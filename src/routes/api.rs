@@ -5,6 +5,7 @@ use axum::routing::get;
 use serde::Deserialize;
 use crate::app::AppState;
 use crate::auth::admin::Admin;
+use crate::error::AppError;
 use crate::models::{Asset, Id};
 use crate::routes::api;
 
@@ -63,13 +64,13 @@ pub async fn update_asset(
     _admin: Admin,
     state: State<AppState>,
     Json(request): Json<UpdateAssetRequest>
-) -> Result<Json<Asset>, &'static str> {
+) -> Result<Json<Asset>, AppError> {
     let mut assets = state.assets.lock().await;
     if let Some(existing_asset) = assets.get_mut(&request.id) {
         existing_asset.name = request.name.unwrap_or(existing_asset.name.clone());
         existing_asset.unit_value = request.unit_value.unwrap_or(existing_asset.unit_value);
         Ok(Json(existing_asset.clone()))
     } else {
-        Err("Asset does not exist")
+        Err(AppError::AssetDoesNotExist)
     }
 }

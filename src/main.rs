@@ -2,6 +2,7 @@ mod app;
 mod models;
 mod routes;
 mod auth;
+mod error;
 
 use crate::app::App;
 
