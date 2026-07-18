@@ -4,6 +4,7 @@ WORKDIR /app
 
 # Instalar dependências essenciais (se necessário)
 RUN apk add --no-cache \
+    bash \
     pkgconfig \
     openssl-dev \
     openssl-libs-static \
