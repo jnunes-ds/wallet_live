@@ -1,12 +1,12 @@
-use std::collections::HashMap;
-use axum::extract::State;
 use axum::{Json, Router};
 use axum::routing::get;
 use serde::Deserialize;
+
 use crate::app::AppState;
 use crate::auth::admin::Admin;
 use crate::error::AppError;
 use crate::models::asset::{Asset, Id};
+use crate::repository::Repository;
 use crate::routes::api;
 
 pub fn router() -> Router<AppState> {
@@ -20,9 +20,9 @@ pub fn router() -> Router<AppState> {
 }
 
 #[tracing::instrument(skip_all)]
-pub async fn list_assets(state: State<AppState>) -> Json<HashMap<Id, Asset>> {
-    let assets = state.assets.lock().await;
-    Json(assets.clone())
+pub async fn list_assets(repository: Repository) -> Result<Json<Vec<Asset>>, AppError> {
+    let assets = repository.list_assets().await?;
+    Ok(Json(assets))
 }
 
 #[derive(Deserialize)]
@@ -34,22 +34,12 @@ pub struct CreateAssetRequest {
 #[tracing::instrument(skip_all)]
 pub async fn create_asset(
     _admin: Admin,
-    state: State<AppState>,
+    repository: Repository,
     Json(request): Json<CreateAssetRequest>
-) -> Json<Asset> {
-    let mut assets = state.assets.lock().await;
+) -> Result<Json<Asset>, AppError> {
+    let new_asset = repository.create_asset(request.name, request.unit_value).await?;
 
-    let id = assets.values().map(|asset| asset.id).max().unwrap_or_default() + 1;
-
-    let asset = Asset {
-        id,
-        name: request.name,
-        unit_value: request.unit_value,
-    };
-
-    assets.insert(id, asset.clone());
-
-    Json(asset)
+    Ok(Json(new_asset))
 }
 
 #[derive(Deserialize)]
@@ -62,15 +52,11 @@ pub struct UpdateAssetRequest {
 #[tracing::instrument(skip_all)]
 pub async fn update_asset(
     _admin: Admin,
-    state: State<AppState>,
+    repository: Repository,
     Json(request): Json<UpdateAssetRequest>
 ) -> Result<Json<Asset>, AppError> {
-    let mut assets = state.assets.lock().await;
-    if let Some(existing_asset) = assets.get_mut(&request.id) {
-        existing_asset.name = request.name.unwrap_or(existing_asset.name.clone());
-        existing_asset.unit_value = request.unit_value.unwrap_or(existing_asset.unit_value);
-        Ok(Json(existing_asset.clone()))
-    } else {
-        Err(AppError::AssetDoesNotExist)
+    match repository.update_asset(request.id, request.name, request.unit_value).await? {
+        Some(asset) => Ok(Json(asset.clone())),
+        None => Err(AppError::AssetDoesNotExist)
     }
 }
