@@ -1,0 +1,26 @@
+  {
+  "name": "Wallet Live DevContainer",
+  "dockerComposeFile": "../docker-compose.yaml",
+  "service": "app",
+  "workspaceFolder": "/app",
+  "forwardPorts": [3000, 5432],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "rust-analyzer.checkOnSave.command": "clippy"
+      },
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "serayuzur.crates",
+        "vadimcn.vscode-lldb"
+      ]
+    },
+    "jetbrains": {
+      "plugins": [
+        "org.rust.lang"
+      ]
+    }
+  },
+  "remoteUser": "root"
+}

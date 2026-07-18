@@ -44,7 +44,7 @@ impl App {
         info!("Starting server...");
 
         let state = AppState::new().await?;
-        let listener = TcpListener::bind("127.0.0.1:3000").await?;
+        let listener = TcpListener::bind("0.0.0.1:3000").await?;
         let router = Router::new()
             .nest("/api", api::router())
             .with_state(state);

@@ -4,7 +4,7 @@ GET http://127.0.0.1:3000/api/assets
 ### POST
 POST http://127.0.0.1:3000/api/assets
 Content-Type: application/json
-Authorization: batata
+Authorization: im-the-admin
 
 {
   "name": "bitcoin",
