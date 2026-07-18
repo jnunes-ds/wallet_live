@@ -16,4 +16,4 @@ RUN apk add --no-cache \
 RUN cargo install cargo-run-bin cargo-watch
 
 # O código fonte e cache serão montados via volume no docker-compose para dev
-CMD ["cargo", "run"]
+CMD ["sleep", "infinity"]

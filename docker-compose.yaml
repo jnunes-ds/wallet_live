@@ -13,7 +13,7 @@ services:
     depends_on:
       - db
     # Usando o cargo-watch para recarregar a aplicação em tempo de desenvolvimento
-    command: cargo watch -x run
+    command: sleep infinity
 
   db:
     image: postgres:18-alpine
