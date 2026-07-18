@@ -2,7 +2,7 @@ use serde::Serialize;
 
 pub type Id = i64;
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, sqlx::FromRow)]
 pub struct Asset {
     pub id: Id,
     pub name: String,

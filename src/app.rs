@@ -28,12 +28,13 @@ pub struct App;
 
 impl App {
     pub async fn start() -> color_eyre::Result<()> {
+        let filter = tracing::level_filters::LevelFilter::INFO;
         let layer = tracing_subscriber::fmt::layer()
-            .with_span_events(FmtSpan::NEW)
-            .boxed();
+            .with_span_events(FmtSpan::NEW);
 
-        tracing_subscriber::registry().with(layer).init();
+        tracing_subscriber::registry().with(layer.with_filter(filter)).init();
 
+        dotenvy::dotenv()?;
         info!("Starting server...");
 
         let state = AppState::new().await?;
