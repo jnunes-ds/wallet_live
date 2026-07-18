@@ -6,14 +6,13 @@ WORKDIR /app
 RUN apk add --no-cache \
     pkgconfig \
     openssl-dev \
-    openssl-libs-static \
     musl-dev \
     gcc \
     gcompat \
     libstdc++
 
-# Instalar o cargo-run-bin como solicitado, e o cargo-watch para live-reload
-RUN cargo install cargo-run-bin cargo-watch
+# Instalar o cargo-bin como solicitado, e o cargo-watch para live-reload
+RUN cargo install cargo-bin cargo-watch
 
 # O código fonte e cache serão montados via volume no docker-compose para dev
 CMD ["cargo", "run"]
