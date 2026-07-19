@@ -17,6 +17,7 @@ dotenvy = "0.15.7"
 password-auth = "1.0.0"
 askama = { version = "0.16.0", features = ["derive"] }
 axum-extra = { version = "0.12.6", features = ["cookie-signed"] }
+jwt-simple = "0.12.17"
 
 [dev-dependencies]
 insta = { version = "1.48.0", features = ["json"] }
