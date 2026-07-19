@@ -15,5 +15,12 @@ thiserror = "2.0.18"
 sqlx = { version = "0.9.0", features = ["macros", "postgres", "runtime-tokio"] }
 dotenvy = "0.15.7"
 
+[dev-dependencies]
+insta = { version = "1.48.0", features = ["json"] }
+
 [package.metadata.bin]
 sqlx-cli = { version = "0.9.0", features = ["postgres"], bins = ["sqlx"] }
+cargo-insta = { version = "1.48.0" }
+
+[alias]
+insta = ["bin", "cargo-insta"]
