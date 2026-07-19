@@ -11,10 +11,14 @@ pub enum AppError {
     InvalidCredentials,
     #[error("Asset does not exists")]
     AssetDoesNotExist,
+    #[error("User does not exists")]
+    UserDoesNotExists,
     #[error("This username is already registered")]
     UsernameTaken,
     #[error(transparent)]
-    Database(#[from] sqlx::Error)
+    Database(#[from] sqlx::Error),
+    #[error(transparent)]
+    Template(#[from] askama::Error)
 }
 
 pub struct ErrorResponse {
@@ -30,8 +34,8 @@ impl IntoResponse for AppError {
         let status = match self {
             Self::UsernameTaken | Self::MissingAuthorization => StatusCode::BAD_REQUEST,
             Self::InvalidCredentials => StatusCode::UNAUTHORIZED,
-            Self::AssetDoesNotExist => StatusCode::NOT_FOUND,
-            Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR
+            Self::UserDoesNotExists | Self::AssetDoesNotExist => StatusCode::NOT_FOUND,
+            Self::Template(_) | Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
         };
 
         (status, Json(error_response)).0.into_response()

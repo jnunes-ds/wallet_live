@@ -7,7 +7,8 @@ use tracing_subscriber::fmt::format::FmtSpan;
 use tracing_subscriber::Layer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-use crate::routes::api;
+use crate::routes;
+use crate::routes::{api, frontend};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -41,6 +42,7 @@ impl App {
         let listener = TcpListener::bind("0.0.0.0:3000").await?;
         let router = Router::new()
             .nest("/api", api::router())
+            .merge(frontend::router())
             .with_state(state);
 
 

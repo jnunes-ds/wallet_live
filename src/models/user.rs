@@ -8,11 +8,18 @@ pub struct UnauthenticatedUser {
 }
 
 impl UnauthenticatedUser {
+    pub fn new(username: String, password: String) -> Self {
+        Self {
+            username,
+            password
+        }
+    }
+    
     pub async fn authenticate(&self, repository: &Repository) -> Result<User, AppError> {
         let user_record = match repository
             .get_user_by_username(self.username.as_str()).await? {
             Some(user_record) => user_record,
-            None => return Err(AppError::InvalidCredentials)
+            None => return Err(AppError::UserDoesNotExists)
         };
 
         match password_auth::verify_password(self.password.as_str(), &user_record.password_hash) {
@@ -46,8 +53,16 @@ impl User {
     fn new(id: i64, username: String) -> Self {
         Self { id, username }
     }
+    pub fn username(&self) -> &str {
+        &self.username
+    }
+    
+    pub fn id(&self) -> i64 {
+        self.id
+    }
 }
 
+#[derive(sqlx::FromRow)]
 pub struct UserRecord {
     pub id: i64,
     pub username: String,
