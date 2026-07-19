@@ -1,0 +1,3 @@
+[alias]
+sqlx = "bin sqlx"
+insta = ["bin", "cargo-insta"]
