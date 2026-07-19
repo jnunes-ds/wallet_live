@@ -31,10 +31,10 @@ async fn login(
     repository: Repository,
     Form(LoginForm{username, password}): Form<LoginForm>
 ) -> Result<Html<String>, AppError> {
-    let unauth_user = UnauthenticatedUser::new(username, password);
-    let user = match unauth_user.authenticate(&repository).await {
+    let unauthenticated_user = UnauthenticatedUser::new(username, password);
+    let user = match unauthenticated_user.authenticate(&repository).await {
         Ok(user) => user,
-        Err(AppError::UserDoesNotExists) => unauth_user.register(repository).await?,
+        Err(AppError::UserDoesNotExists) => unauthenticated_user.register(repository).await?,
         Err(other_err) => return Err(other_err)
     };
     Ok(Html(user.username().to_string()))
