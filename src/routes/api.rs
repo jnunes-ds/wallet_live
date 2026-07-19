@@ -60,3 +60,27 @@ pub async fn update_asset(
         None => Err(AppError::AssetDoesNotExist)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use sqlx::PgPool;
+    use super::*;
+
+    #[sqlx::test]
+    async fn test_create_asset(db: PgPool) {
+        let request = CreateAssetRequest {
+            name: "Bitcoin".to_string(),
+            unit_value: 250_000.0
+        };
+        
+        let Json(new_asset) = create_asset(Admin, db.into(), Json(request))
+            .await
+            .expect("success");
+        
+        assert_eq!(new_asset.id, 1);
+        assert_eq!(new_asset.name, "Bitcoin");
+        assert_eq!(new_asset.unit_value, 250_000.0);
+        
+        insta::assert_json_snapshot!(new_asset);
+    }
+}
