@@ -1,4 +1,8 @@
+use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
+use axum_extra::extract::CookieJar;
 use password_auth::VerifyError;
+use crate::app::AppState;
 use crate::error::AppError;
 use crate::repository::Repository;
 
@@ -14,7 +18,7 @@ impl UnauthenticatedUser {
             password
         }
     }
-    
+
     pub async fn authenticate(&self, repository: &Repository) -> Result<User, AppError> {
         let user_record = match repository
             .get_user_by_username(self.username.as_str()).await? {
@@ -56,9 +60,26 @@ impl User {
     pub const fn username(&self) -> &str {
         self.username.as_str()
     }
-    
+
     pub const fn id(&self) -> i64 {
         self.id
+    }
+}
+
+impl FromRequestParts<AppState> for User {
+    type Rejection = AppError;
+    async fn from_request_parts(
+        parts: &mut Parts,
+        _state: &AppState
+    ) -> Result<Self, Self::Rejection> {
+        let jar = CookieJar::from_headers(&parts.headers);
+
+        let id = match jar.get("token") {
+            Some(token) => token.value().parse().unwrap_or_default(),
+            None => return Err(AppError::MissingAuthorization)
+        };
+
+        Ok(User::new(id, "alguém".to_string()))
     }
 }
 
