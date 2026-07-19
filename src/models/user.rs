@@ -53,11 +53,11 @@ impl User {
     fn new(id: i64, username: String) -> Self {
         Self { id, username }
     }
-    pub fn username(&self) -> &str {
-        &self.username
+    pub const fn username(&self) -> &str {
+        self.username.as_str()
     }
     
-    pub fn id(&self) -> i64 {
+    pub const fn id(&self) -> i64 {
         self.id
     }
 }
