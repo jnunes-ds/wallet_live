@@ -7,7 +7,7 @@ Content-Type: application/json
 Authorization: im-the-admin
 
 {
-  "name": "bitcoin",
+  "name": "Euro",
   "unit_value": 10.45
 }
 
@@ -17,7 +17,33 @@ Content-Type: application/json
 Authorization: im-the-admin
 
 {
-  "id": 1,
+  "id": 4,
   "name": "Bitcoin",
-  "unit_value": 210.0
+  "unit_value": 17.0
 }
+
+###
+### Frontend Routes
+###
+
+### GET /
+GET http://127.0.0.1:3000/
+Accept: text/html
+
+### GET /login
+GET http://127.0.0.1:3000/login
+Accept: text/html
+
+### POST /login
+POST http://127.0.0.1:3000/login
+Content-Type: application/x-www-form-urlencoded
+
+username=test&password=password
+
+### GET /logout
+GET http://127.0.0.1:3000/logout
+
+### GET /assets
+GET http://127.0.0.1:3000/assets
+Accept: text/html
+Cookie: token={{token}}

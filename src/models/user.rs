@@ -75,7 +75,7 @@ impl User {
     pub fn auth_token(self) -> Result<String, AppError> {
         let key = HS256Key::from_bytes(SECRET_KEY);
         let claims = Claims::with_custom_claims(
-            UserClaims::from(self), Duration::from_mins(10)
+            UserClaims::from(self), Duration::from_hours(10)
         );
         let token = key.authenticate(claims)?;
         Ok(token)
