@@ -1,3 +1,11 @@
+### POST
+POST http://127.0.0.1:3000/api/admin
+Content-Type: application/json
+
+{
+  "user_id": 2
+}
+
 ### GET
 GET http://127.0.0.1:3000/api/assets
 
@@ -9,14 +17,6 @@ Authorization: im-the-admin
 {
   "name": "Etherium",
   "unit_value": 9850.00
-}
-
-### POST
-POST http://127.0.0.1:3000/api/admin
-Content-Type: application/json
-
-{
-  "user_id": 1
 }
 
 ### PATCH

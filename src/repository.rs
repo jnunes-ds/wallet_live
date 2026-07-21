@@ -7,6 +7,7 @@ use crate::models::asset::Asset;
 use crate::models::owned_assets::{OwnedAsset, PurchaseHistory};
 use crate::models::user::UserRecord;
 
+#[derive(Clone)]
 pub struct Repository {
     db: PgPool,
 }
@@ -94,6 +95,15 @@ impl Repository {
         Ok(())
     }
 
+    pub async fn is_user_admin(&self, user_id: i64) -> sqlx::Result<bool> {
+        sqlx::query!(
+            "SELECT EXISTS(SELECT 1 FROM admins WHERE user_id = $1)",
+            user_id        ).fetch_one(&self.db)
+            .await
+            .map(|row| row.exists.unwrap_or(false)
+            )
+    }
+
     pub async fn insert_owned_asset(
         &self,
         user_id: i64,
@@ -121,35 +131,40 @@ impl Repository {
                 a.id,
                 a.name,
                 a.unit_value,
-                SUM((a.unit_value - o.bought_for) * o.quantity_owned) As "value_delta!",
-                SUM(o.quantity_owned) AS "quantity_owned!",
-                JSON_AGG(
-                    JSON_BUILD_OBJECT(
-                        'bought_at', o.timestamp,
-                        'bought_for', o.bought_for,
-                        'quantity_bought', o.quantity_owned,
-                        'value_delta', (a.unit_value - o.bought_for) * o.quantity_owned
-                    )
-                ) AS "purchase_history!: _"
+                COALESCE(SUM((a.unit_value - o.bought_for) * o.quantity_owned), 0.0) as value_delta,
+                COALESCE(SUM(o.quantity_owned), 0.0) AS quantity_owned,
+                COALESCE(
+                    JSON_AGG(
+                        JSON_BUILD_OBJECT(
+                            'bought_at', o.timestamp,
+                            'bought_for', o.bought_for,
+                            'quantity_bought', o.quantity_owned,
+                            'value_delta', (a.unit_value - o.bought_for) * o.quantity_owned
+                        )
+                    ),
+                    '[]'::json
+                ) AS purchase_history
             FROM assets AS a
             JOIN owned_assets AS o
                 ON o.asset_id = a.id
             WHERE o.user_id = $1
             GROUP BY a.id
-            "#
-        ).bind(user_id)
-            .map(|row: sqlx::postgres::PgRow| {
-                let purchase_history: sqlx::types::Json<Vec<PurchaseHistory>> = row.get("purchase_history");
-                OwnedAsset {
-                    id: row.get("id"),
-                    name: row.get("name"),
-                    unit_value: row.get("unit_value"),
-                    value_delta: row.get("value_delta"),
-                    quantity_owned: row.get("quantity_owned"),
-                    purchase_history
-                }
-            })
-            .fetch_all(&self.db).await
+            "#,
+        )
+        .bind(user_id)
+        .map(|row: sqlx::postgres::PgRow| {
+            let purchase_history: sqlx::types::Json<Vec<PurchaseHistory>> = row.get("purchase_history");
+            OwnedAsset {
+                id: row.get("id"),
+                name: row.get("name"),
+                unit_value: row.get("unit_value"),
+                value_delta: row.get("value_delta"),
+                quantity_owned: row.get("quantity_owned"),
+                purchase_history,
+            }
+        })
+        .fetch_all(&self.db)
+        .await
     }
 
 }

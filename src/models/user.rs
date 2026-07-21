@@ -55,6 +55,7 @@ impl UnauthenticatedUser {
     }
 }
 
+#[derive(Clone)]
 pub struct User {
     id: i64,
     username: String,
@@ -81,8 +82,26 @@ impl User {
         Ok(token)
     }
 
+    pub fn admin_token(self) -> Result<String, AppError> {
+        let admin_secret_key = std::env::var("ADMIN_SECRET_KEY").unwrap();
+        let key = HS256Key::from_bytes(admin_secret_key.as_bytes());
+        let claims = Claims::with_custom_claims(
+            UserClaims::from(self), Duration::from_hours(10)
+        );
+        let token = key.authenticate(claims)?;
+        Ok(token)
+    }
+
     pub fn from_auth_token(token: &str) -> Result<Self, AppError> {
         let key = HS256Key::from_bytes(SECRET_KEY);
+        let claims: UserClaims = key.verify_token(token, None)?.custom;
+
+        Ok(Self::new(claims.id, claims.username))
+    }
+
+    pub fn from_admin_token(token: &str) -> Result<Self, AppError> {
+        let admin_secret_key = std::env::var("ADMIN_SECRET_KEY").unwrap();
+        let key = HS256Key::from_bytes(admin_secret_key.as_bytes());
         let claims: UserClaims = key.verify_token(token, None)?.custom;
 
         Ok(Self::new(claims.id, claims.username))
