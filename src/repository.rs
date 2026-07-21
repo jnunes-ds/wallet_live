@@ -80,6 +80,19 @@ impl Repository {
             username
         ).fetch_optional(&self.db).await
     }
+    
+    pub async fn turn_user_into_admin(
+        &self,
+        user_id: i64
+    ) -> sqlx::Result<()> {
+        sqlx::query!(
+            "INSERT INTO admins
+            (user_id)
+            VALUES ($1)",
+            user_id
+        ).execute(&self.db).await?;
+        Ok(())
+    }
 
     pub async fn insert_owned_asset(
         &self,
