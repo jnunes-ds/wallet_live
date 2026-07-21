@@ -121,7 +121,7 @@ pub mod filters {
     #[askama::filter_fn]
     pub fn human_datetime(
         datetime: &OffsetDateTime,
-        _env: &dyn askama::Value
+        _env: &dyn askama::Values
     ) -> askama::Result<String> {
         const HUMAN_READABLE_FORMAT: StaticFormatDescription =
             format_description!(version =2, "[year]-[month]-[day] [hour]:[minute]");

@@ -26,16 +26,41 @@
                     <th scope="col" class="px-6 py-3">Change</th>
                 </tr>
                 </thead>
-                <tbody>
                 {% for asset in owned_assets %}
-                    <tr class="bg-white border-b hover:bg-slate-50">
-                        <th scope="row" class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">{{ asset.name }}</th>
-                        <td class="px-6 py-4">{{ asset.quantity_owned }}</td>
-                        <td class="px-6 py-4">${{ asset.unit_value }}</td>
-                        <td class="px-6 py-4 text-green-500">{{ asset.value_delta }}%</td>
-                    </tr>
+                    <tbody class="cursor-pointer" onclick="toggleDetails('{{ asset.id }}')">
+                        <tr class="bg-white border-b hover:bg-slate-50">
+                            <th scope="row" class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">{{ asset.name }}</th>
+                            <td class="px-6 py-4">{{ asset.quantity_owned }}</td>
+                            <td class="px-6 py-4">${{ asset.unit_value }}</td>
+                            <td class="px-6 py-4 text-green-500">{{ asset.value_delta }}%</td>
+                        </tr>
+                        <tr id="details-{{ asset.id }}" class="hidden bg-slate-50">
+                            <td colspan="4" class="p-4">
+                                <h4 class="text-lg font-bold mb-2">Purchase History</h4>
+                                <table class="w-full text-sm text-left text-slate-500">
+                                    <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3">Purchase Date</th>
+                                            <th scope="col" class="px-6 py-3">Quantity</th>
+                                            <th scope="col" class="px-6 py-3">Bought For</th>
+                                            <th scope="col" class="px-6 py-3">Change</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for purchase in asset.purchase_history.0 %}
+                                        <tr class="border-b">
+                                            <td class="px-6 py-4">{{ purchase.bought_at | human_datetime }}</td>
+                                            <td class="px-6 py-4">{{ purchase.quantity_bought }}</td>
+                                            <td class="px-6 py-4">${{ purchase.bought_for }}</td>
+                                            <td class="px-6 py-4 text-green-500">{{ purchase.value_delta }}%</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
                 {% endfor %}
-                </tbody>
             </table>
         </div>
     </div>
@@ -89,6 +114,13 @@
     window.onclick = function(event) {
         if (event.target === modal) {
             closeModal();
+        }
+    }
+
+    function toggleDetails(assetId) {
+        const detailsRow = document.getElementById('details-' + assetId);
+        if (detailsRow) {
+            detailsRow.classList.toggle('hidden');
         }
     }
 </script>
