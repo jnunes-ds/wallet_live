@@ -1,5 +1,5 @@
 use axum::{Json, Router};
-use axum::routing::get;
+use axum::routing::{get, post};
 use serde::Deserialize;
 
 use crate::app::AppState;
@@ -16,7 +16,16 @@ pub fn router() -> Router<AppState> {
             get(api::list_assets)
                 .post(api::create_asset)
                 .patch(update_asset)
-        )
+        ).route("/admin", post(api::turn_user_into_admin))
+}
+#[derive(Deserialize)]
+struct TurnUserIntoAdminRequest {
+    user_id: i64,
+}
+
+pub async fn turn_user_into_admin(repository: Repository, Json(request): Json<TurnUserIntoAdminRequest>) -> Result<(), AppError> {
+    repository.turn_user_into_admin(request.user_id).await?;
+    Ok(())
 }
 
 #[tracing::instrument(skip_all)]
