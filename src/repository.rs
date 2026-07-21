@@ -1,10 +1,10 @@
 use std::convert::Infallible;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use crate::app::AppState;
 use crate::models::asset::Asset;
-use crate::models::owned_assets::OwnedAsset;
+use crate::models::owned_assets::{OwnedAsset, PurchaseHistory};
 use crate::models::user::UserRecord;
 
 pub struct Repository {
@@ -102,8 +102,7 @@ impl Repository {
     }
 
     pub async fn list_owned_assets(&self, user_id: i64) -> sqlx::Result<Vec<OwnedAsset>> {
-        sqlx::query_as!(
-            OwnedAsset,
+        sqlx::query(
             r#"
             SELECT
                 a.id,
@@ -124,9 +123,20 @@ impl Repository {
                 ON o.asset_id = a.id
             WHERE o.user_id = $1
             GROUP BY a.id
-            "#,
-            user_id
-        ).fetch_all(&self.db).await
+            "#
+        ).bind(user_id)
+            .map(|row: sqlx::postgres::PgRow| {
+                let purchase_history: sqlx::types::Json<Vec<PurchaseHistory>> = row.get("purchase_history");
+                OwnedAsset {
+                    id: row.get("id"),
+                    name: row.get("name"),
+                    unit_value: row.get("unit_value"),
+                    value_delta: row.get("value_delta"),
+                    quantity_owned: row.get("quantity_owned"),
+                    purchase_history
+                }
+            })
+            .fetch_all(&self.db).await
     }
 
 }
