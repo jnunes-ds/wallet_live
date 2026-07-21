@@ -53,6 +53,17 @@ impl Repository {
             unit_value
         ).fetch_optional(&self.db).await
     }
+    
+    pub async fn get_asset_by_id(
+        &self,
+        asset_id: i64
+    ) -> sqlx::Result<Asset> {
+        sqlx::query_as!(
+            Asset,
+            "SELECT id, name, unit_value FROM assets WHERE id = $1",
+            asset_id
+        ).fetch_one(&self.db).await
+    }
 
     pub async fn add_user(
         &self,
