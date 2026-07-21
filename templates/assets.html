@@ -32,7 +32,11 @@
                             <th scope="row" class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">{{ asset.name }}</th>
                             <td class="px-6 py-4">{{ asset.quantity_owned }}</td>
                             <td class="px-6 py-4">${{ asset.unit_value }}</td>
-                            <td class="px-6 py-4 text-green-500">{{ asset.value_delta }}%</td>
+                            {% if asset.value_delta > 0.0 %}
+                            <td class="px-6 py-4 text-green-500">+{{ asset.value_delta }}</td>
+                            {% else %}
+                            <td class="px-6 py-4 text-red-500">{{ asset.value_delta }}</td>
+                            {% endif %}
                         </tr>
                         <tr id="details-{{ asset.id }}" class="hidden bg-slate-50">
                             <td colspan="4" class="p-4">
@@ -52,7 +56,11 @@
                                             <td class="px-6 py-4">{{ purchase.bought_at | human_datetime }}</td>
                                             <td class="px-6 py-4">{{ purchase.quantity_bought }}</td>
                                             <td class="px-6 py-4">${{ purchase.bought_for }}</td>
-                                            <td class="px-6 py-4 text-green-500">{{ purchase.value_delta }}%</td>
+                                            {% if purchase.value_delta > 0.0 %}
+                                            <td class="px-6 py-4 text-green-500">+{{ purchase.value_delta }}</td>
+                                            {% else %}
+                                            <td class="px-6 py-4 text-red-500">{{ purchase.value_delta }}</td>
+                                            {% endif %}
                                         </tr>
                                     {% endfor %}
                                     </tbody>
