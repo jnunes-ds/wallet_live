@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use sqlx::types::Json;
 use time::OffsetDateTime;
 
@@ -18,5 +18,5 @@ pub struct OwnedAsset {
     pub unit_value: f64,
     pub value_delta: f64,
     pub quantity_owned: f64,
-    pub purchase_history: Json<Vec<PurchaseHistory>>
+    pub purchase_history: Json<Vec<PurchaseHistory>>,
 }

@@ -1,9 +1,9 @@
-use axum::Json;
-use jwt_simple::prelude::Deserialize;
 use crate::auth::admin::Admin;
 use crate::error::AppError;
 use crate::models::asset::{Asset, Id};
 use crate::repository::Repository;
+use axum::Json;
+use jwt_simple::prelude::Deserialize;
 
 #[tracing::instrument(skip_all)]
 pub async fn list_assets(repository: Repository) -> Result<Json<Vec<Asset>>, AppError> {
@@ -21,9 +21,11 @@ pub struct CreateAssetRequest {
 pub async fn create_asset(
     _admin: Admin,
     repository: Repository,
-    Json(request): Json<CreateAssetRequest>
+    Json(request): Json<CreateAssetRequest>,
 ) -> Result<Json<Asset>, AppError> {
-    let new_asset = repository.create_asset(request.name, request.unit_value).await?;
+    let new_asset = repository
+        .create_asset(request.name, request.unit_value)
+        .await?;
 
     Ok(Json(new_asset))
 }
@@ -39,24 +41,27 @@ pub struct UpdateAssetRequest {
 pub async fn update_asset(
     _admin: Admin,
     repository: Repository,
-    Json(request): Json<UpdateAssetRequest>
+    Json(request): Json<UpdateAssetRequest>,
 ) -> Result<Json<Asset>, AppError> {
-    match repository.update_asset(request.id, request.name, request.unit_value).await? {
+    match repository
+        .update_asset(request.id, request.name, request.unit_value)
+        .await?
+    {
         Some(asset) => Ok(Json(asset.clone())),
-        None => Err(AppError::AssetDoesNotExist)
+        None => Err(AppError::AssetDoesNotExist),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use sqlx::PgPool;
     use super::*;
+    use sqlx::PgPool;
 
     #[sqlx::test]
     async fn test_create_asset(db: PgPool) {
         let request = CreateAssetRequest {
             name: "Bitcoin".to_string(),
-            unit_value: 250_000.0
+            unit_value: 250_000.0,
         };
 
         let Json(new_asset) = create_asset(Admin, db.into(), Json(request))
@@ -85,7 +90,7 @@ mod tests {
         let request = UpdateAssetRequest {
             id: 1,
             name: Some("Ethereum".to_string()),
-            unit_value: Some(450_000.0)
+            unit_value: Some(450_000.0),
         };
 
         let Json(new_asset) = update_asset(Admin, db.into(), Json(request))

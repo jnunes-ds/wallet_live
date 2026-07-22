@@ -1,33 +1,39 @@
+mod assets;
 mod login;
 mod logout;
-mod assets;
 
-use axum::Router;
-use axum::routing::get;
 use crate::app::AppState;
 use crate::routes::frontend;
+use axum::Router;
+use axum::routing::get;
 
-pub fn router() ->  Router<AppState> {
+pub fn router() -> Router<AppState> {
     Router::new()
         .route("/", get(frontend::login::index))
-        .route("/login", get(frontend::login::login_page).post(frontend::login::login))
+        .route(
+            "/login",
+            get(frontend::login::login_page).post(frontend::login::login),
+        )
         .route("/logout", get(frontend::logout::logout))
-        .route("/assets", get(frontend::assets::assets).post(frontend::assets::purchase_asset))
+        .route(
+            "/assets",
+            get(frontend::assets::assets).post(frontend::assets::purchase_asset),
+        )
 }
 
 pub mod filters {
     use askama;
     use time::{
-        OffsetDateTime, format_description::StaticFormatDescription, macros::format_description
+        OffsetDateTime, format_description::StaticFormatDescription, macros::format_description,
     };
 
     #[askama::filter_fn]
     pub fn human_datetime(
         datetime: &OffsetDateTime,
-        _env: &dyn askama::Values
+        _env: &dyn askama::Values,
     ) -> askama::Result<String> {
         const HUMAN_READABLE_FORMAT: StaticFormatDescription =
-            format_description!(version =2, "[year]-[month]-[day] [hour]:[minute]");
+            format_description!(version = 2, "[year]-[month]-[day] [hour]:[minute]");
 
         datetime
             .format(HUMAN_READABLE_FORMAT)

@@ -30,6 +30,12 @@
                        placeholder="••••••••">
             </div>
 
+            {% match error_message %}
+                {% when Some with (msg) %}
+                    <p class="text-red-500 text-sm font-semibold">{{ msg }}</p>
+                {% when None %}
+            {% endmatch %}
+
             
             <button type="submit"
                     class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
