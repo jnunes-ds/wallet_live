@@ -123,6 +123,15 @@ A aplicação adota mecanismos de autenticação com segurança de mercado:
 - Utiliza Cookies assinados (`axum-extra`) para prover armazenamento seguro de tokens e preferências no cliente.
 - Configure apropriadamente `ADMIN_SECRET_KEY` no seu `.env` local, que pode ser utilizado em rotas restritas ou como pimenta para o seu hash/tokens.
 
+### Acesso de Administrador (Admin)
+
+A aplicação possui funcionalidades restritas a usuários administradores. Por exemplo, na **tela de assets**, existe uma funcionalidade exclusiva que só pode ser acessada caso o seu usuário tenha o privilégio de `admin`.
+
+Para promover um usuário comum a administrador (útil no seu ambiente de desenvolvimento), siga os passos abaixo:
+1. Crie um usuário normalmente através do fluxo padrão (tela de registro).
+2. Obtenha o `user_id` desse usuário.
+3. Faça uma requisição do tipo **POST** para a rota `/admin` enviando o `user_id` desse usuário (a estrutura exata do payload e autenticação depende de como a rota exige a `ADMIN_SECRET_KEY`).
+
 ## 🧪 Testes
 
 Os testes na aplicação são conduzidos integrando o framework oficial de testes do Rust juntamente com [Insta](https://insta.rs/) (Snapshot Testing). Para rodar a suíte de testes do repositório:
