@@ -1,9 +1,9 @@
 mod app;
-mod models;
-mod routes;
 mod auth;
 mod error;
+mod models;
 mod repository;
+mod routes;
 
 use crate::app::App;
 
@@ -11,4 +11,3 @@ use crate::app::App;
 async fn main() -> color_eyre::Result<()> {
     App::start().await
 }
-

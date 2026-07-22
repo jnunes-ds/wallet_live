@@ -1,5 +1,5 @@
-use axum::http::StatusCode;
 use axum::Json;
+use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use thiserror::Error;
 
@@ -20,7 +20,7 @@ pub enum AppError {
     #[error(transparent)]
     Template(#[from] askama::Error),
     #[error(transparent)]
-    Jwt(#[from] jwt_simple::Error)
+    Jwt(#[from] jwt_simple::Error),
 }
 
 pub struct ErrorResponse {
@@ -37,7 +37,9 @@ impl IntoResponse for AppError {
             Self::UsernameTaken | Self::MissingAuthorization => StatusCode::BAD_REQUEST,
             Self::InvalidCredentials => StatusCode::UNAUTHORIZED,
             Self::UserDoesNotExists | Self::AssetDoesNotExist => StatusCode::NOT_FOUND,
-            Self::Template(_) | Self::Database(_) | Self::Jwt(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Template(_) | Self::Database(_) | Self::Jwt(_) => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
         };
 
         (status, Json(error_response)).0.into_response()

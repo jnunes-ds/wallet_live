@@ -7,12 +7,74 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gradient-to-br from-slate-100 to-slate-200 min-h-screen font-sans text-slate-900">
+<nav class="bg-white shadow-sm border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <div class="flex items-center">
+                <a href="/assets" class="flex items-center space-x-2">
+                    <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-xl font-bold text-slate-800 tracking-tight">Wallet Live</span>
+                </a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="hidden sm:inline-block text-sm text-slate-600">
+                    Logged in as <span class="font-semibold text-slate-800">{{ user.username() }}</span>
+                </span>
+                <a href="/logout" class="inline-flex items-center space-x-2 px-4 py-2 border border-slate-200 text-sm font-semibold rounded-lg text-rose-600 bg-white hover:bg-rose-50 hover:border-rose-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 transition-all duration-200 shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
 <div class="container mx-auto p-4 sm:p-6 lg:p-8">
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-2xl font-bold text-slate-800">Welcome, <span class="font-extrabold">{{ user.username() }}</span></h1>
-        <button onclick="openModal()" class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-            Register Purchase
-        </button>
+        <div class="flex space-x-4">
+            <button onclick="openPurchaseModal()" class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                Register Purchase
+            </button>
+            {% if is_admin %}
+            <button onclick="openCreateAssetModal()" class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                Create New Asset
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-3xl shadow-xl p-6 border border-slate-100 flex flex-col justify-between">
+            <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Invested</p>
+                <p class="text-3xl font-extrabold text-slate-800 mt-2">{{ total_invested }}</p>
+            </div>
+            <div class="text-xs text-slate-400 mt-4">Total invested across transactions</div>
+        </div>
+        <div class="bg-white rounded-3xl shadow-xl p-6 border border-slate-100 flex flex-col justify-between">
+            <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Current Value</p>
+                <p class="text-3xl font-extrabold text-indigo-600 mt-2">{{ total_current_value }}</p>
+            </div>
+            <div class="text-xs text-slate-400 mt-4">Current total market value</div>
+        </div>
+        <div class="bg-white rounded-3xl shadow-xl p-6 border border-slate-100 flex flex-col justify-between">
+            <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Profit / Loss</p>
+                {% if is_delta_positive %}
+                <p class="text-3xl font-extrabold text-green-500 mt-2">+{{ total_delta }}</p>
+                {% else %}
+                <p class="text-3xl font-extrabold text-red-500 mt-2">{{ total_delta }}</p>
+                {% endif %}
+            </div>
+            <div class="text-xs text-slate-400 mt-4">Total return on investment</div>
+        </div>
     </div>
 
     <div class="bg-white rounded-3xl shadow-xl overflow-hidden">
@@ -31,11 +93,11 @@
                         <tr class="bg-white border-b hover:bg-slate-50">
                             <th scope="row" class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">{{ asset.name }}</th>
                             <td class="px-6 py-4">{{ asset.quantity_owned }}</td>
-                            <td class="px-6 py-4">${{ asset.unit_value }}</td>
+                            <td class="px-6 py-4">{{ asset.format_unit_value() }}</td>
                             {% if asset.value_delta > 0.0 %}
-                            <td class="px-6 py-4 text-green-500">+{{ asset.value_delta }}</td>
+                            <td class="px-6 py-4 text-green-500">+{{ asset.format_value_delta() }}</td>
                             {% else %}
-                            <td class="px-6 py-4 text-red-500">{{ asset.value_delta }}</td>
+                            <td class="px-6 py-4 text-red-500">{{ asset.format_value_delta() }}</td>
                             {% endif %}
                         </tr>
                         <tr id="details-{{ asset.id }}" class="hidden bg-slate-50">
@@ -55,11 +117,11 @@
                                         <tr class="border-b">
                                             <td class="px-6 py-4">{{ purchase.bought_at | human_datetime }}</td>
                                             <td class="px-6 py-4">{{ purchase.quantity_bought }}</td>
-                                            <td class="px-6 py-4">${{ purchase.bought_for }}</td>
+                                            <td class="px-6 py-4">{{ purchase.format_bought_for() }}</td>
                                             {% if purchase.value_delta > 0.0 %}
-                                            <td class="px-6 py-4 text-green-500">+{{ purchase.value_delta }}</td>
+                                            <td class="px-6 py-4 text-green-500">+{{ purchase.format_value_delta() }}</td>
                                             {% else %}
-                                            <td class="px-6 py-4 text-red-500">{{ purchase.value_delta }}</td>
+                                            <td class="px-6 py-4 text-red-500">{{ purchase.format_value_delta() }}</td>
                                             {% endif %}
                                         </tr>
                                     {% endfor %}
@@ -74,16 +136,16 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Purchase Modal -->
 <div id="purchaseModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center hidden">
     <div class="bg-white rounded-3xl shadow-xl w-full max-w-md p-8 sm:p-10 transition-all">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-extrabold text-slate-900">Register Purchase</h2>
-            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+            <button onclick="closePurchaseModal()" class="text-slate-400 hover:text-slate-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
-        <form method="POST" class="space-y-6">
+        <form method="POST" action="/assets" class="space-y-6">
             <div>
                 <label for="asset" class="block text-sm font-semibold text-slate-700 mb-2">Asset</label>
                 <select id="asset" name="asset" required class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200">
@@ -107,21 +169,60 @@
     </div>
 </div>
 
+<!-- Create Asset Modal -->
+{% if is_admin %}
+<div id="createAssetModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center hidden">
+    <div class="bg-white rounded-3xl shadow-xl w-full max-w-md p-8 sm:p-10 transition-all">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-extrabold text-slate-900">Create New Asset</h2>
+            <button onclick="closeCreateAssetModal()" class="text-slate-400 hover:text-slate-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form method="POST" action="/api/assets" class="space-y-6">
+            <div>
+                <label for="name" class="block text-sm font-semibold text-slate-700 mb-2">Asset Name</label>
+                <input type="text" id="name" name="name" required class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200" placeholder="e.g., Ethereum">
+            </div>
+            <div>
+                <label for="unit_value" class="block text-sm font-semibold text-slate-700 mb-2">Initial Unit Value</label>
+                <input type="number" step="0.01" id="unit_value_create" name="unit_value" required class="w-full px-4 py-3 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors duration-200" placeholder="e.g., 3500.00">
+            </div>
+            <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                Create Asset
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
 <script>
-    const modal = document.getElementById('purchaseModal');
+    const purchaseModal = document.getElementById('purchaseModal');
+    const createAssetModal = document.getElementById('createAssetModal');
 
-    function openModal() {
-        modal.classList.remove('hidden');
+    function openPurchaseModal() {
+        purchaseModal.classList.remove('hidden');
     }
 
-    function closeModal() {
-        modal.classList.add('hidden');
+    function closePurchaseModal() {
+        purchaseModal.classList.add('hidden');
     }
 
-    // Close modal if user clicks outside of it
+    function openCreateAssetModal() {
+        if (createAssetModal) createAssetModal.classList.remove('hidden');
+    }
+
+    function closeCreateAssetModal() {
+        if (createAssetModal) createAssetModal.classList.add('hidden');
+    }
+
+    // Close modals if user clicks outside of them
     window.onclick = function(event) {
-        if (event.target === modal) {
-            closeModal();
+        if (event.target === purchaseModal) {
+                closePurchaseModal();
+        }
+        if (event.target === createAssetModal) {
+            closeCreateAssetModal();
         }
     }
 
