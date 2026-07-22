@@ -1,4 +1,6 @@
-use std::convert::Infallible;
+use crate::app::AppState;
+use crate::error::AppError;
+use crate::repository::Repository;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum_extra::extract::CookieJar;
@@ -7,9 +9,7 @@ use jwt_simple::claims::Claims;
 use jwt_simple::prelude::{Duration, MACLike};
 use password_auth::VerifyError;
 use serde::{Deserialize, Serialize};
-use crate::app::AppState;
-use crate::error::AppError;
-use crate::repository::Repository;
+use std::convert::Infallible;
 
 const SECRET_KEY: &[u8] = b"is-so-secret";
 
@@ -20,41 +20,42 @@ pub struct UnauthenticatedUser {
 
 impl UnauthenticatedUser {
     pub fn new(username: String, password: String) -> Self {
-        Self {
-            username,
-            password
-        }
+        Self { username, password }
     }
 
     pub async fn authenticate(&self, repository: &Repository) -> Result<User, AppError> {
         let user_record = match repository
-            .get_user_by_username(self.username.as_str()).await? {
+            .get_user_by_username(self.username.as_str())
+            .await?
+        {
             Some(user_record) => user_record,
-            None => return Err(AppError::UserDoesNotExists)
+            None => return Err(AppError::UserDoesNotExists),
         };
 
         match password_auth::verify_password(self.password.as_str(), &user_record.password_hash) {
             Ok(()) => Ok(User::new(user_record.id, user_record.username)),
             Err(VerifyError::PasswordInvalid) => Err(AppError::InvalidCredentials),
-            Err(VerifyError::Parse(err)) => panic!("Hashing algorithm failed: {}", err)
+            Err(VerifyError::Parse(err)) => panic!("Hashing algorithm failed: {}", err),
         }
     }
 
     pub async fn register(&self, repository: Repository) -> Result<User, AppError> {
         let password_hash = password_auth::generate_hash(self.password.as_str());
-        let user_record = match repository.add_user(&self.username, password_hash.as_str()).await {
+        let user_record = match repository
+            .add_user(&self.username, password_hash.as_str())
+            .await
+        {
             Ok(user_record) => user_record,
-            Err(sqlx::Error::Database(db_err)) 
-                if db_err.is_unique_violation() => {
-                return Err(AppError::UsernameTaken)
-            },
-            Err(err) => return Err(AppError::Database(err))
+            Err(sqlx::Error::Database(db_err)) if db_err.is_unique_violation() => {
+                return Err(AppError::UsernameTaken);
+            }
+            Err(err) => return Err(AppError::Database(err)),
         };
         Ok(User::new(user_record.id, user_record.username))
-
     }
 }
 
+#[derive(Clone)]
 pub struct User {
     id: i64,
     username: String,
@@ -74,15 +75,29 @@ impl User {
 
     pub fn auth_token(self) -> Result<String, AppError> {
         let key = HS256Key::from_bytes(SECRET_KEY);
-        let claims = Claims::with_custom_claims(
-            UserClaims::from(self), Duration::from_hours(10)
-        );
+        let claims = Claims::with_custom_claims(UserClaims::from(self), Duration::from_hours(10));
+        let token = key.authenticate(claims)?;
+        Ok(token)
+    }
+
+    pub fn admin_token(self) -> Result<String, AppError> {
+        let admin_secret_key = std::env::var("ADMIN_SECRET_KEY").unwrap();
+        let key = HS256Key::from_bytes(admin_secret_key.as_bytes());
+        let claims = Claims::with_custom_claims(UserClaims::from(self), Duration::from_hours(10));
         let token = key.authenticate(claims)?;
         Ok(token)
     }
 
     pub fn from_auth_token(token: &str) -> Result<Self, AppError> {
         let key = HS256Key::from_bytes(SECRET_KEY);
+        let claims: UserClaims = key.verify_token(token, None)?.custom;
+
+        Ok(Self::new(claims.id, claims.username))
+    }
+
+    pub fn from_admin_token(token: &str) -> Result<Self, AppError> {
+        let admin_secret_key = std::env::var("ADMIN_SECRET_KEY").unwrap();
+        let key = HS256Key::from_bytes(admin_secret_key.as_bytes());
         let claims: UserClaims = key.verify_token(token, None)?.custom;
 
         Ok(Self::new(claims.id, claims.username))
@@ -94,7 +109,7 @@ impl FromRequestParts<AppState> for Option<User> {
 
     async fn from_request_parts(
         parts: &mut Parts,
-        state: &AppState
+        state: &AppState,
     ) -> Result<Self, Self::Rejection> {
         Ok(User::from_request_parts(parts, state).await.ok())
     }
@@ -104,13 +119,13 @@ impl FromRequestParts<AppState> for User {
     type Rejection = AppError;
     async fn from_request_parts(
         parts: &mut Parts,
-        _state: &AppState
+        _state: &AppState,
     ) -> Result<Self, Self::Rejection> {
         let jar = CookieJar::from_headers(&parts.headers);
 
         let token = match jar.get("token") {
             Some(token) => token.value(),
-            None => return Err(AppError::MissingAuthorization)
+            None => return Err(AppError::MissingAuthorization),
         };
 
         User::from_auth_token(token)
@@ -121,7 +136,7 @@ impl FromRequestParts<AppState> for User {
 pub struct UserRecord {
     pub id: i64,
     pub username: String,
-    pub password_hash: String
+    pub password_hash: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -131,7 +146,7 @@ struct UserClaims {
 }
 
 impl From<User> for UserClaims {
-    fn from( User { id, username }: User) -> Self {
+    fn from(User { id, username }: User) -> Self {
         Self { id, username }
     }
 }
