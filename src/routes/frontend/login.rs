@@ -42,7 +42,7 @@ pub async fn login(
         Err(AppError::UserDoesNotExists) => unauthenticated_user.register(repository).await?,
         Err(_other_err) => {
             let html = LoginPage {
-                error_message: Some("Login ou senha incorretos.".to_string()),
+                error_message: Some("Incorrect username or password.".to_string()),
             }
             .render()?;
             return Ok(Html(html).into_response());
@@ -113,6 +113,6 @@ mod tests {
             .await
             .expect("failed to read body");
         let body_str = String::from_utf8(body_bytes.to_vec()).expect("invalid utf-8");
-        assert!(body_str.contains("Login ou senha incorretos."));
+        assert!(body_str.contains("Incorrect username or password."));
     }
 }
