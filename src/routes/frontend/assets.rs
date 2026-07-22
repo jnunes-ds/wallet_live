@@ -15,7 +15,8 @@ use crate::routes::frontend::filters;
 pub struct AssetsPage {
     owned_assets: Vec<OwnedAsset>,
     available_assets: Vec<Asset>,
-    user: User
+    user: User,
+    is_admin: bool
 }
 
 pub async fn assets(repository: Repository, user: User) -> Result<Html<String>, AppError> {
@@ -23,11 +24,14 @@ pub async fn assets(repository: Repository, user: User) -> Result<Html<String>, 
         repository.list_owned_assets(user.id()),
         repository.list_assets()
     )?;
+    
+    let is_admin = repository.is_user_admin(user.id()).await?;
 
     let html = AssetsPage {
         owned_assets,
         available_assets,
-        user
+        user,
+        is_admin
     }.render()?;
 
     Ok(Html(html))

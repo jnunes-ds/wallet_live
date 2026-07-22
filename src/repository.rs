@@ -112,7 +112,7 @@ impl Repository {
             user_id        ).fetch_one(&self.db)
             .await
             .map(|row| row.exists.unwrap_or(false)
-            )
+        )   
     }
 
     pub async fn insert_owned_asset(
